@@ -1,0 +1,220 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Alles Melone2</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var cursors;
+var scoreText;
+var level = 1;
+var levelPics = [];
+var test = new Phaser.SVGSizeConfig();
+
+var SceneA = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize: function SceneA ()
+    {
+        Phaser.Scene.call(this, { key: 'sceneA' });
+    },
+
+    preload: function ()
+    {
+        this.load.image('sky', 'assets/sky.png');
+    	this.load.image('melon', 'assets/melon.png');
+    	this.load.image('bell', 'assets/bell.svg');
+    	//load all level pics
+    	for (var i = 1; i<5; i++){
+    		this.load.svg('level_' + i, 'assets/level_' + i + '.svg', {width:800, height:600});
+    	}    	
+    },
+
+    create: function ()
+    {
+	    //fügt Melone und Glocke und Hintergrund an levelspezifischer Stelle hinzu
+	    this.addThingsForLevel();
+	    
+	    //  Spieler Eigenschaften
+	    //player.setBounce(0.2); <-- wenn es Gravitation gibt, prallt der Spieler wie ein Flummi vom Boden ab
+	    player.setCollideWorldBounds(true);  //Spieler kann Grenzen des Spiels nicht überschreiten
+
+	    //  mögliche Eingaben
+	    cursors = this.input.keyboard.createCursorKeys();
+
+	    //  Das aktuelle Level
+	    levelText = this.add.text(16, 16, 'Level: ' + level, { fontSize: '32px', fill: '#000' });
+
+	    //  Checks to see if the player overlaps with any of the bells
+	    this.physics.add.overlap(player, bell);
+
+    },
+
+    update: function()
+    {
+    	// Spieler (Melone) bewegt sich nach links oder rechts oder gar nicht
+	    if (cursors.left.isDown)
+	    {
+	        player.setVelocityX(-160);
+	    }
+	    else if (cursors.right.isDown)
+	    {
+	        player.setVelocityX(160);
+	    }
+	    else
+	    {
+	        player.setVelocityX(0);
+	    }
+	    // Spieler (Melone) bewegt sich nach oben oder unten oder gar nicht
+	    if (cursors.up.isDown)
+	    {
+	        player.setVelocityY(-160);
+	    }
+	    else if (cursors.down.isDown)
+	    {
+	        player.setVelocityY(160);
+	    }
+	    else
+	    {
+	        player.setVelocityY(0);
+	    }
+
+	    if(!player.body.touching.none && !bell.body.touching.none)
+	    {
+	    	bell.disableBody(true, true);
+
+		    //  Level hochzählen
+		    level += 1;
+		    levelText.setText('Level: ' + level);
+		    this.scene.start('sceneA');
+	    }
+
+	    if(!player.body.touching.none && bell.body.touching.none)
+	    {
+	    	this.scene.start('sceneA');
+	    }
+    },
+
+    addThingsForLevel: function()
+    {
+    	var p_x, p_y;
+    	var b_x, b_y;
+    	var barrier_pic;
+    	var barrier_x;
+    	var barrier_y;
+
+    	switch(level){
+    		case 1: 
+    			p_x = 100;
+    			p_y = 450;
+    			b_x = 700;
+    			b_y = 50;
+    			barrier_pic = 'level_1';
+    			barrier_x = 0;
+    			barrier_y = 0;
+    			break;
+    		case 2:
+    			p_x = 100;
+    			p_y = 550;
+    			b_x = 500;
+    			b_y = 220;
+    			barrier_pic = 'level_2';
+    			barrier_x = 400;
+    			barrier_y = 300;
+    			break;
+    		case 3:
+    			p_x = 100;
+    			p_y = 550;
+    			b_x = 600;
+    			b_y = 150;
+    			barrier_pic = 'level_3';
+    			barrier_x = 400;
+    			barrier_y = 300;
+    			break;
+    		case 4:
+    			p_x = 100;
+    			p_y = 550;
+    			b_x = 500;
+    			b_y = 220;
+    			barrier_pic = 'level_4';
+    			barrier_x = 400;
+    			barrier_y = 300;
+    			break;
+    		default:
+    			console.log("ungültiges Level");
+    			this.scene.start('sceneEnd');
+    	}
+    	// Der Hintergrund
+    	this.add.image(400, 300, 'sky');
+    	// Der Spieler ( = die Melone)
+    	player = this.physics.add.sprite(p_x, p_y, 'melon');
+    	// Das Ziel ( = die Glocke)
+	    bell = this.physics.add.sprite(b_x, b_y, 'bell');
+	    //Das Hindernis (schwarze Linien)
+	    barrier = this.physics.add.sprite(barrier_x, barrier_y, barrier_pic);
+	    this.physics.add.overlap(player, barrier);
+    }
+
+});
+
+var SceneEnd = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize: function SceneEnd ()
+    {
+        Phaser.Scene.call(this, { key: 'sceneEnd' });
+    },
+
+    preload: function ()
+    {
+        this.load.image('sky', 'assets/sky.png');
+    },
+
+    create: function ()
+    {
+        this.add.image(400, 300, 'sky');
+
+	    // Der Spieler ( = die Melone)
+	    endText = this.add.text(50, 200, 'Du hast gewonnen!', { fontSize: '64px', fill: '#fff' });
+	    endText2 = this.add.text(250, 275, 'You won!', { fontSize: '64px', fill: '#fff' });
+	},
+
+	update: function()
+    {
+    	
+    } 
+});
+
+var config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    backgroundColor: '#000000',
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
+        }
+    },
+    parent: 'phaser-example',
+    scene: [ SceneA, SceneEnd ]
+};
+
+var game = new Phaser.Game(config);
+
+</script>
+
+</body>
+</html>
